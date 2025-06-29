@@ -28,6 +28,7 @@ class _MyAppState extends State<MyApp> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          scrollable: true,
           title: Text('Add a new task'),
           content: Column(
             children: [
@@ -71,16 +72,26 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(title: Text('To Do List')),
-        body:
-            tasks.isEmpty
-                ? Center(child: Text('No tasks yet.'))
-                : ListView.builder(
-                  itemCount: tasks.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
+    return Scaffold(
+      appBar: AppBar(title: Text('To Do List')),
+      body:
+          tasks.isEmpty
+              ? Center(child: Text('No tasks yet.'))
+              : ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      top: 5.0,
+                      bottom: 5.0,
+                      left: 10.0,
+                      right: 10.0,
+                    ),
+                    child: ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.0),
+                      ),
+                      tileColor: Colors.black12,
                       leading: Checkbox(
                         value: tasks[index].isDone,
                         onChanged: (value) {
@@ -91,21 +102,21 @@ class _MyAppState extends State<MyApp> {
                       ),
                       title: Text(tasks[index].task),
                       subtitle: Text(tasks[index].date),
-                    );
-                  },
-                ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            addTaskDialog();
-          },
-          backgroundColor: Colors.deepPurple,
-          hoverColor: Colors.deepPurpleAccent,
-          elevation: 10.0,
-          hoverElevation: 20.0,
-          foregroundColor: Colors.white,
-          shape: CircleBorder(),
-          child: Icon(Icons.add),
-        ),
+                    ),
+                  );
+                },
+              ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          addTaskDialog();
+        },
+        backgroundColor: Colors.deepPurple,
+        hoverColor: Colors.deepPurpleAccent,
+        elevation: 10.0,
+        hoverElevation: 20.0,
+        foregroundColor: Colors.white,
+        shape: CircleBorder(),
+        child: Icon(Icons.add),
       ),
     );
   }
