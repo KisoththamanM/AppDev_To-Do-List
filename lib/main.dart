@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:to_do_list/db_helper.dart';
 
 void main() {
   runApp(MaterialApp(home: ToDo(), debugShowCheckedModeBanner: false));
-}
-
-class Task {
-  String task;
-  String date;
-  bool isDone;
-  Task({required this.task, required this.date, this.isDone = false});
 }
 
 class ToDo extends StatefulWidget {
@@ -19,9 +13,38 @@ class ToDo extends StatefulWidget {
 }
 
 class _ToDoState extends State<ToDo> {
-  List<Task> tasks = [];
+  DBHelper dbHelper = DBHelper();
+  List<Map<String, dynamic>> tasks = [];
   TextEditingController taskController = TextEditingController();
   TextEditingController dateController = TextEditingController();
+
+  @override
+  void initState() {
+    loadTasks();
+    super.initState();
+  }
+
+  void loadTasks() async {
+    final data = await dbHelper.getTasks();
+    setState(() {
+      tasks = data;
+    });
+  }
+
+  void addTask(String title, String date) async {
+    await dbHelper.insertTask(title, date);
+    loadTasks();
+  }
+
+  void deleteTask(int id) async {
+    await dbHelper.deleteTask(id);
+    loadTasks();
+  }
+
+  void toggleDone(int id, bool isDone) async {
+    await dbHelper.updateTask(id, isDone ? 1 : 0);
+    loadTasks();
+  }
 
   void addTaskDialog() {
     showDialog(
@@ -53,11 +76,7 @@ class _ToDoState extends State<ToDo> {
             ),
             TextButton(
               onPressed: () {
-                setState(() {
-                  tasks.add(
-                    Task(task: taskController.text, date: dateController.text),
-                  );
-                });
+                addTask(taskController.text, dateController.text);
                 taskController.clear();
                 dateController.clear();
                 Navigator.pop(context);
@@ -70,7 +89,7 @@ class _ToDoState extends State<ToDo> {
     );
   }
 
-  void deleteTask(int index) {
+  void deleteConfirmDialog(int index) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -86,7 +105,6 @@ class _ToDoState extends State<ToDo> {
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Expanded(
                   child: Text(
@@ -103,9 +121,7 @@ class _ToDoState extends State<ToDo> {
                 SizedBox(width: 5.0),
                 TextButton(
                   onPressed: () {
-                    setState(() {
-                      tasks.removeAt(index);
-                    });
+                    deleteTask(tasks[index]['id']);
                     Navigator.pop(context);
                   },
                   child: Text('Yes'),
@@ -134,30 +150,23 @@ class _ToDoState extends State<ToDo> {
                   itemCount: tasks.length,
                   itemBuilder: (context, index) {
                     return Padding(
-                      padding: const EdgeInsets.only(
-                        top: 5.0,
-                        bottom: 5.0,
-                        left: 10.0,
-                        right: 10.0,
-                      ),
+                      padding: const EdgeInsets.all(5.0),
                       child: ListTile(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                         tileColor: Color(0x8DFFE311),
                         leading: Checkbox(
-                          value: tasks[index].isDone,
+                          value: tasks[index]['isDone'] == 1,
                           onChanged: (value) {
-                            setState(() {
-                              tasks[index].isDone = !tasks[index].isDone;
-                            });
+                            toggleDone(tasks[index]['id'], value!);
                           },
                         ),
-                        title: Text(tasks[index].task),
-                        subtitle: Text(tasks[index].date),
+                        title: Text(tasks[index]['title']),
+                        subtitle: Text(tasks[index]['date']),
                         trailing: IconButton(
                           onPressed: () {
-                            deleteTask(index);
+                            deleteConfirmDialog(index);
                           },
                           icon: Icon(
                             Icons.delete_outline_rounded,
@@ -174,7 +183,6 @@ class _ToDoState extends State<ToDo> {
           addTaskDialog();
         },
         backgroundColor: Color(0xFFFFE311),
-        hoverColor: Colors.deepPurpleAccent,
         elevation: 10.0,
         hoverElevation: 20.0,
         foregroundColor: Colors.white,
