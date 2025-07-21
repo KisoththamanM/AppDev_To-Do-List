@@ -26,6 +26,11 @@ class _ToDoState extends State<ToDo> {
 
   void loadTasks() async {
     final data = await dbHelper.getTasks();
+    data.sort((a, b) {
+      DateTime dateA = DateTime.parse(a['date']);
+      DateTime dateB = DateTime.parse(b['date']);
+      return dateA.compareTo(dateB);
+    });
     setState(() {
       tasks = data;
     });
@@ -61,7 +66,29 @@ class _ToDoState extends State<ToDo> {
               ),
               TextField(
                 controller: dateController,
-                decoration: InputDecoration(labelText: 'Date'),
+                decoration: InputDecoration(
+                  labelText: 'Pick Date',
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.calendar_today),
+                    onPressed: () async {
+                      DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+
+                      if (pickedDate != null) {
+                        String formattedDate =
+                            "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
+                        setState(() {
+                          dateController.text = formattedDate;
+                        });
+                      }
+                    },
+                  ),
+                ),
+                readOnly: true,
               ),
             ],
           ),
