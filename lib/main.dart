@@ -15,6 +15,7 @@ class ToDo extends StatefulWidget {
 class _ToDoState extends State<ToDo> {
   DBHelper dbHelper = DBHelper();
   List<Map<String, dynamic>> tasks = [];
+  DateTime? date;
   TextEditingController taskController = TextEditingController();
   TextEditingController dateController = TextEditingController();
 
@@ -24,11 +25,27 @@ class _ToDoState extends State<ToDo> {
     super.initState();
   }
 
+  //For Date picker/////////////////////////////////////////////////////////////
+  Future<void> pickDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1950),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != date) {
+      setState(() {
+        date = picked;
+        dateController.text = "${picked.day}/${picked.month}/${picked.year}";
+      });
+    }
+  }
+
   void loadTasks() async {
     final data = await dbHelper.getTasks();
     data.sort((a, b) {
-      DateTime dateA = DateTime.parse(a['date']);
-      DateTime dateB = DateTime.parse(b['date']);
+      DateTime dateA = DateTime.parse(a["date"]);
+      DateTime dateB = DateTime.parse(b["date"]);
       return dateA.compareTo(dateB);
     });
     setState(() {
@@ -57,38 +74,35 @@ class _ToDoState extends State<ToDo> {
       builder: (context) {
         return AlertDialog(
           scrollable: true,
-          title: Text('Add a new task'),
+          title: Text("Add a new task"),
           content: Column(
             children: [
               TextField(
                 controller: taskController,
-                decoration: InputDecoration(labelText: 'Task'),
+                decoration: InputDecoration(labelText: "Task"),
               ),
-              TextField(
-                controller: dateController,
-                decoration: InputDecoration(
-                  labelText: 'Pick Date',
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.calendar_today),
-                    onPressed: () async {
-                      DateTime? pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-
-                      if (pickedDate != null) {
-                        String formattedDate =
-                            "${pickedDate.day}-${pickedDate.month}-${pickedDate.year}";
-                        setState(() {
-                          dateController.text = formattedDate;
-                        });
-                      }
-                    },
+              GestureDetector(
+                onTap: () => pickDate(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: dateController,
+                    decoration: InputDecoration(
+                      suffixIcon: Icon(Icons.calendar_today_sharp),
+                      label: Text("Date"),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: BorderSide(
+                          color: Colors.black54,
+                          width: 1.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(5.0),
+                        borderSide: BorderSide(color: Colors.black, width: 1.5),
+                      ),
+                    ),
                   ),
                 ),
-                readOnly: true,
               ),
             ],
           ),
@@ -99,7 +113,7 @@ class _ToDoState extends State<ToDo> {
                 dateController.clear();
                 Navigator.pop(context);
               },
-              child: Text('Cancel'),
+              child: Text("Cancel"),
             ),
             TextButton(
               onPressed: () {
@@ -108,7 +122,7 @@ class _ToDoState extends State<ToDo> {
                 dateController.clear();
                 Navigator.pop(context);
               },
-              child: Text('Save'),
+              child: Text("Save"),
             ),
           ],
         );
@@ -135,7 +149,7 @@ class _ToDoState extends State<ToDo> {
               children: [
                 Expanded(
                   child: Text(
-                    'Are you sure you want to delete the task?',
+                    "Are you sure you want to delete the task?",
                     maxLines: 2,
                   ),
                 ),
@@ -143,15 +157,15 @@ class _ToDoState extends State<ToDo> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Text('No'),
+                  child: Text("No"),
                 ),
                 SizedBox(width: 5.0),
                 TextButton(
                   onPressed: () {
-                    deleteTask(tasks[index]['id']);
+                    deleteTask(tasks[index]["id"]);
                     Navigator.pop(context);
                   },
-                  child: Text('Yes'),
+                  child: Text("Yes"),
                 ),
               ],
             ),
@@ -166,13 +180,13 @@ class _ToDoState extends State<ToDo> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF5DB0A),
-        title: Text('To Do List'),
+        title: Text("To Do List"),
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 5.0),
         child:
             tasks.isEmpty
-                ? Center(child: Text('No tasks yet.'))
+                ? Center(child: Text("No tasks yet."))
                 : ListView.builder(
                   itemCount: tasks.length,
                   itemBuilder: (context, index) {
@@ -184,13 +198,13 @@ class _ToDoState extends State<ToDo> {
                         ),
                         tileColor: Color(0x8DFFE311),
                         leading: Checkbox(
-                          value: tasks[index]['isDone'] == 1,
+                          value: tasks[index]["isDone"] == 1,
                           onChanged: (value) {
-                            toggleDone(tasks[index]['id'], value!);
+                            toggleDone(tasks[index]["id"], value!);
                           },
                         ),
-                        title: Text(tasks[index]['title']),
-                        subtitle: Text(tasks[index]['date']),
+                        title: Text(tasks[index]["title"]),
+                        subtitle: Text(tasks[index]["date"]),
                         trailing: IconButton(
                           onPressed: () {
                             deleteConfirmDialog(index);
