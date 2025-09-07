@@ -89,17 +89,6 @@ class _ToDoState extends State<ToDo> {
                     decoration: InputDecoration(
                       suffixIcon: Icon(Icons.calendar_today_sharp),
                       label: Text("Date"),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                        borderSide: BorderSide(
-                          color: Colors.black54,
-                          width: 1.0,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(5.0),
-                        borderSide: BorderSide(color: Colors.black, width: 1.5),
-                      ),
                     ),
                   ),
                 ),
